@@ -87,7 +87,7 @@ public class VendingMachine {
             }
         },
         TERMINAL {
-            public void next() {
+            public void output() {
                 System.out.println("Halted");
             }
         };

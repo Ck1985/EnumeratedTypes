@@ -12,7 +12,7 @@ enum Category {
     QUIT_TRANSACTION(ABORT_TRANSACTION),
     SHUTDOWN(STOP);
     private Input10[] values;
-    Category(Input10... vlaues) {
+    Category(Input10... values) {
         this.values = values;
     }
     private static EnumMap<Input10, Category> categories = new EnumMap<Input10, Category>(Input10.class);
@@ -27,72 +27,32 @@ enum Category {
         return categories.get(input);
     }
 }
+interface Command {
+    void next(Input10 input);
+    void next();
+}
+enum State {
+    RESTING, ADDING_MONEY, DISPENSING, GIVING_CHANGE, TERMINAL
+}
+
 public class VendingMachine_Ex10 {
-    private static State state = State.RESTING;
-    private static int amount = 0;
-    private static Input10 selection = null;
-    enum StateDuration {
-        TRANSIENT
+
+}
+
+class RandomInputGenerator implements Generator<Input10> {
+    public Input10 next() {
+        return Input10.randomSelection();
     }
-    enum State {
-        RESTING {
-            public void next(Input10 input) {
-                switch (Category.categozie(input)) {
-                    case MONEY:
-                        amount += input.amount();
-                        state = State.ADDING_MONEY;
-                        break;
-                    case SHUTDOWN:
-                        state = State.TERMINAL;
-                    default:
-                }
-            }
-        },
-        ADDING_MONEY {
-            public void next(Input10 input) {
-                switch (Category.categozie(input)) {
-                    case MONEY:
-                        amount += input.amount();
-                        state = State.ADDING_MONEY;
-                        break;
-                    case ITEM_SELECTION:
-                        if (amount < selection.amount()) {
-                            System.out.println("Insufficient money for " + selection);
-                        } else {
-                            state = State.DISPENSING;
-                        }
-                        break;
-                    case QUIT_TRANSACTION:
-                        state = State.GIVING_CHANGE;
-                        break;
-                    case SHUTDOWN:
-                        state = State.TERMINAL;
-                    default:
-                }
-            }
-        },
-        DISPENSING {
-
-        },
-        GIVING_CHANGE {
-
-        },
-        TERMINAL {
-
+}
+class FileInputGenerator implements Generator<Input10> {
+    private Iterator<String> input;
+    FileInputGenerator(String filename) {
+        input = new TextFile(filename,";").iterator();
+    }
+    public Input10 next() {
+        if (!input.hasNext()) {
+            return null;
         }
-        private boolean isTransient = false;
-        State(){}
-        State(StateDuration tran) {
-            this.isTransient = true;
-        }
-        void next(Input10 input) {
-            throw new RuntimeException("Only call next(Input10 input) method for non-transient state");
-        }
-        void next() {
-            throw new RuntimeException("Only call next() method for StateDuration.TRANSIENT state");
-        }
-        void output() {
-            System.out.println(amount);
-        }
+        return Enum.valueOf(Input10.class, input.next().trim());
     }
 }
